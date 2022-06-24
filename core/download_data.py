@@ -5,27 +5,17 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 
-from core.utils import solve_dir, list_files, solve_path
+from .utils import solve_dir, list_files, solve_path, delete_existing_files
+from .config import CSV_DOWNLOAD_DIR, HEADLESS_BROWSER
 
-
-def delete_existing_files(folder, extension=None):
-
-    folder = solve_dir(folder)
-
-    files = list_files(folder, extension)
-    if files:
-        print('Found existing files')
-    for file in files:
-        os.remove(file)
-        print(f'File {file} deleted.')
 
 
 #TO DO: POR ENQUANTO SOH ESTOU BAIXANDO CSV DO INDICADORES, MAS DA PARA PEGAR MAIS
 class ObservaDownload:
 
     base_url = 'https://observasampa.prefeitura.sp.gov.br/'
-    csv_download_dir = os.environ.get('CSV_DOWNLOAD_DIR') or solve_path('csv_data', 'data')
-    headless = os.environ.get('HEADLESS_BROWSER') or False
+    csv_download_dir = CSV_DOWNLOAD_DIR
+    headless = HEADLESS_BROWSER
 
     def __init__(self):
 
