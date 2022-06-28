@@ -1,4 +1,5 @@
 import os
+import zipfile
 
 def solve_dir(folder):
 
@@ -72,6 +73,11 @@ def delete_existing_files(folder, extension=None):
     for file in files:
         os.remove(file)
         print(f'File {file} deleted.')
+
+def unzip_bytes_io(bytes_io, save_folder):
+
+    with zipfile.ZipFile(bytes_io) as zip_ref:
+        zip_ref.extractall(save_folder)
 
 
     

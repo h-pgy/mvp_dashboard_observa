@@ -5,8 +5,10 @@ import os
 CSV_DOWNLOAD_DIR = solve_path('csv_downloads', 'data'),
 JSON_DOWNLOAD_DIR = solve_path('json_downloads', 'data'),
 HEADLESS_BROWSER = False
+
 FOLDER_MAPS = solve_path('maps', parent='static_files')
-FOLDER_DISTRITOS = solve_path('distritos', parent=FOLDER_MAPS)
+
+APP_DATA_FOLDER = solve_path('app', 'data')
 
 distorcao_idade_ano = [
     '04.01.03 Taxa de distorção da idade-ano para o ano no Ensino Fundamental nos anos iniciais (%)',
@@ -32,5 +34,3 @@ LIST_INDICADORES = []
 LIST_INDICADORES.extend(distorcao_idade_ano)
 LIST_INDICADORES.extend(raca_alunos)
 LIST_INDICADORES.extend(abandono)
-
-APP_DATA_FOLDER = solve_path('app', parent='data')

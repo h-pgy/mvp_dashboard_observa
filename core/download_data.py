@@ -5,10 +5,38 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 
-from .utils import solve_dir, list_files, solve_path, delete_existing_files
-from .config import CSV_DOWNLOAD_DIR, HEADLESS_BROWSER
+from requests import Session
+from io import BytesIO
+
+from .utils import solve_dir, list_files, solve_path, delete_existing_files, unzip_bytes_io
+from .config import CSV_DOWNLOAD_DIR, HEADLESS_BROWSER, FOLDER_MAPS
 
 
+
+def download_shape_distritos(folder = FOLDER_MAPS):
+
+    folder_distritos = solve_path('SIRGAS_SHP_distrito', folder)
+
+    if os.path.exists(folder_distritos):
+        print('Dados de distritos ja salvos')
+        return
+
+    session = Session()
+    home = 'http://geosampa.prefeitura.sp.gov.br/PaginasPublicas/'
+
+    link_download = ("http://download.geosampa.prefeitura.sp.gov.br/" # o servico de download esta em outro dominio
+                    "PaginasPublicas/downloadArquivo.aspx?orig=DownloadCamadas"
+                    "&arq=01_Limites%20Administrativos%5C%5CDistrito%5C%5CShapefile%5C%5CSIRGAS_SHP_distrito"
+                    "&arqTipo=Shapefile")
+
+    #entrando na home para pegar cookies
+    session.get(home)
+
+    with session.get(link_download) as r:
+        binary = r.content
+    bytes_io = BytesIO(binary)
+
+    unzip_bytes_io(bytes_io, folder)
 
 #TO DO: POR ENQUANTO SOH ESTOU BAIXANDO CSV DO INDICADORES, MAS DA PARA PEGAR MAIS
 class ObservaDownload:
@@ -107,10 +135,4 @@ class ObservaDownload:
         #HARDCODING THIS TILL I HAVE A MORE RELIABLE SOLUTION (CHECK FOR TEMPFILES FOR EXAMPLE)
         time.sleep(3)
         self.close_when_download_finished(self.csv_download_dir, '.csv')
-
-
-if __name__ == "__main__":
-
-    downloader = ObservaDownload()
-
 
