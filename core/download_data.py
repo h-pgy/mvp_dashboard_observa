@@ -9,15 +9,16 @@ from requests import Session
 from io import BytesIO
 
 from .utils import solve_dir, list_files, solve_path, delete_existing_files, unzip_bytes_io
-from .config import CSV_DOWNLOAD_DIR, HEADLESS_BROWSER, FOLDER_MAPS
+from .config import CSV_DOWNLOAD_DIR, HEADLESS_BROWSER, FOLDER_DISTRITOS
 
 
 
-def download_shape_distritos(folder = FOLDER_MAPS):
+def download_shape_distritos(folder = FOLDER_DISTRITOS):
 
-    folder_distritos = solve_path('SIRGAS_SHP_distrito', folder)
-
-    if os.path.exists(folder_distritos):
+    
+    #checa se tem arquivos ja dentro do folder
+    #nesse caso nao faz sentido atualizar porque os distritos nao mudam
+    if os.path.exists(folder) and len(os.listdir(folder))>1:
         print('Dados de distritos ja salvos')
         return
 
@@ -45,7 +46,7 @@ class ObservaDownload:
     csv_download_dir = CSV_DOWNLOAD_DIR
     headless = HEADLESS_BROWSER
 
-    def __init__(self):
+    def inicialize(self):
 
         browser_profile = self.create_profile()
         self.browser = self.create_driver(browser_profile)
@@ -131,8 +132,9 @@ class ObservaDownload:
     #TO DO: DOWNLOAD OUTROS ELEMENTOS
     def __call__(self):
 
+        self.inicialize()
         self.download_csv_pipeline()
         #HARDCODING THIS TILL I HAVE A MORE RELIABLE SOLUTION (CHECK FOR TEMPFILES FOR EXAMPLE)
-        time.sleep(3)
+        time.sleep(10)
         self.close_when_download_finished(self.csv_download_dir, '.csv')
 
