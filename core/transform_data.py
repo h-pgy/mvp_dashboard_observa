@@ -1,17 +1,43 @@
 import pandas as pd 
 import geopandas as gpd 
-from .utils import solve_path, remover_acentos
-from .config import LIST_INDICADORES, FOLDER_DISTRITOS, APP_DATA_FOLDER
+import os
+import time
+from .utils import solve_path, solve_dir, remover_acentos, list_files
+from .download_data import ObservaDownload, download_shape_distritos
+
+from .config import LIST_INDICADORES, FOLDER_DISTRITOS, CSV_DOWNLOAD_DIR, APP_DATA_FOLDER
 
 class TransformarIndicadores:
 
-
     list_indicadores = LIST_INDICADORES
 
-    def __init__(self, csv_path):
+    def __init__(self, csv_path=None):
 
+
+        self.download_csv = ObservaDownload()
+
+        if csv_path is None:
+            csv_path = self.find_csv()
         self.df = pd.read_csv(csv_path, sep=';', encoding='utf-8')
-            
+
+
+    def find_csv(self, folder = CSV_DOWNLOAD_DIR):
+
+        folder = solve_dir(folder)
+        #pega o primeiro csv do folder
+        csvs = list_files(folder, extension='.csv')
+
+        if not csvs:
+            self.download_csv()
+            #hard-coded para dar tempo de dar o download
+            #to do: esse tempo ser programatico (inspecionar processo selenium?)
+            time.sleep(30)
+
+        csvs = list_files(folder, extension='.csv')
+        assert len(csvs) <2, 'Tem dois csvs salvos na pasta!'
+
+
+        return csvs[0]
 
     def filtrar_distritos(self, df):
     
@@ -66,7 +92,7 @@ class MakeShapefiles:
 
     def __init__(self, df):
 
-        self.distritos = gpd.read_file(path_distritos)
+        self.distritos = gpd.read_file(self.path_distritos)
         self.df = self.get_distritos()
 
     def set_crs(self, distritos):
