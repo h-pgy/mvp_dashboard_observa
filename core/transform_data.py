@@ -5,17 +5,14 @@ import time
 from .utils import solve_path, solve_dir, remover_acentos, list_files
 from .download_data import ObservaDownload, download_shape_distritos
 
-from .config import LIST_INDICADORES, FOLDER_DISTRITOS, CSV_DOWNLOAD_DIR, APP_DATA_FOLDER
+from .config import FOLDER_DISTRITOS, CSV_DOWNLOAD_DIR, APP_DATA_FOLDER
 
 class TransformarIndicadores:
 
-    list_indicadores = LIST_INDICADORES
 
     def __init__(self, csv_path=None):
 
-
         self.download_csv = ObservaDownload()
-
         if csv_path is None:
             csv_path = self.find_csv()
         self.df = pd.read_csv(csv_path, sep=';', encoding='utf-8')
@@ -68,21 +65,22 @@ class TransformarIndicadores:
 
         return df
 
-    def pipeline_transform(self, df=None, list_indis=None):
+    def pipeline_transform(self, list_indicadores, filtrar_distrito, df=None, list_indis=None):
 
         if df is None:
             df = self.df
         
-        df = self.indicadores_interesse(df, list_indis)
-        df = self.filtrar_distritos(df)
+        df = self.indicadores_interesse(df, list_indicadores)
+        if filtrar_distrito:
+            df = self.filtrar_distritos(df)
         df = self.nome_distritos(df)
 
 
         return df
 
-    def __call__(self):
+    def __call__(self, list_indicadores, filtrar_distrito = False):
 
-        return self.pipeline_transform()
+        return self.pipeline_transform(list_indicadores, filtrar_distrito)
 
 
 class MakeShapefiles:

@@ -11,7 +11,7 @@ FOLDER_DISTRITOS = solve_path('SIRGAS_SHP_distrito', FOLDER_MAPS)
 
 APP_DATA_FOLDER = solve_path('app', 'data')
 
-LIST_INDICADORES = [
+LIST_INDICADORES_DISTRITO = [
     'População total',
     'População total - homens',
     'População total - mulheres',
