@@ -5,7 +5,7 @@ import time
 from .utils import solve_path, solve_dir, remover_acentos, list_files
 from .download_data import ObservaDownload, download_shape_distritos
 
-from .config import FOLDER_DISTRITOS, CSV_DOWNLOAD_DIR, APP_DATA_FOLDER
+from .config import FOLDER_DISTRITOS, CSV_DOWNLOAD_DIR
 
 class TransformarIndicadores:
 
@@ -15,8 +15,7 @@ class TransformarIndicadores:
         self.download_csv = ObservaDownload()
         if csv_path is None:
             csv_path = self.find_csv()
-        self.df = pd.read_csv(csv_path, sep=';', encoding='utf-8')
-
+        self.csv_path = csv_path
 
     def find_csv(self, folder = CSV_DOWNLOAD_DIR):
 
@@ -26,9 +25,6 @@ class TransformarIndicadores:
 
         if not csvs:
             self.download_csv()
-            #hard-coded para dar tempo de dar o download
-            #to do: esse tempo ser programatico (inspecionar processo selenium?)
-            time.sleep(30)
 
         csvs = list_files(folder, extension='.csv')
         assert len(csvs) <2, 'Tem dois csvs salvos na pasta!'
@@ -40,6 +36,12 @@ class TransformarIndicadores:
     
         mask = df['Região'].str.endswith('(Distrito)')
         
+        return df[mask].copy().reset_index(drop=True)
+
+    def filtrar_municipio(self, df):
+
+        mask = df['Região'].str.endswith('(Município)')
+
         return df[mask].copy().reset_index(drop=True)
 
     def indicadores_interesse(self, df, list_indis=None):
@@ -65,16 +67,18 @@ class TransformarIndicadores:
 
         return df
 
-    def pipeline_transform(self, list_indicadores, filtrar_distrito, df=None, list_indis=None):
+    def pipeline_transform(self, list_indicadores, filtrar_distrito, df=None):
 
         if df is None:
-            df = self.df
-        
+            df = pd.read_csv(self.csv_path, sep=';', encoding='utf-8')
+
         df = self.indicadores_interesse(df, list_indicadores)
         if filtrar_distrito:
             df = self.filtrar_distritos(df)
-        df = self.nome_distritos(df)
+            df = self.nome_distritos(df)
 
+        else:
+            df = self.filtrar_municipio(df)
 
         return df
 
@@ -83,15 +87,14 @@ class TransformarIndicadores:
         return self.pipeline_transform(list_indicadores, filtrar_distrito)
 
 
-class MakeShapefiles:
+class MakeShapefileDistritos:
 
     path_distritos = solve_path('SIRGAS_SHP_distrito_polygon.shp', parent=FOLDER_DISTRITOS)
     distritos_epsg = '31983'
 
-    def __init__(self, df):
+    def __init__(self):
 
-        self.distritos = gpd.read_file(self.path_distritos)
-        self.df = self.get_distritos()
+        self.distritos = self.get_distritos()
 
     def set_crs(self, distritos):
 
@@ -99,7 +102,12 @@ class MakeShapefiles:
 
         return distritos
 
-    def get_distritos(self):
+    def download_shp_if_not_present(self, path):
+
+        if not os.path.exists(path):
+            download_shape_distritos()
+
+    def get_distritos(self, path=None):
 
         if path is None:
             path = self.path_distritos
@@ -118,14 +126,15 @@ class MakeShapefiles:
 
         return municipio_todo
 
-    def join_distritos(self, df=None, distritos=None):
+    def join_distritos(self, df, distritos=None):
 
-        if df is None:
-            df = self.df
+       
         if distritos is None:
             distritos = self.distritos
-        
 
+        merged = pd.merge(df, distritos, how='left', on='ds_nome')
+        geodf = gpd.GeoDataFrame(merged, geometry='geometry')
+        geodf = self.set_crs(geodf)
 
-    
+        return geodf
     
