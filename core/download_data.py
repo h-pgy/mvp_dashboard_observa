@@ -116,17 +116,20 @@ class ObservaDownload:
         files = list_files(path, extension)
 
         if files:
-            return True
+            file = files[-1]
+            return os.path.isfile(file)
         return False
 
     #IT SEEMS TO BE WORKING BUT NEVERTHELESS I GET A WARNING FROM FIREFOX
     def close_when_download_finished(self, download_dir, extension):
 
+            #HARDCODING THIS TILL I HAVE A MORE RELIABLE SOLUTION (CHECK FOR TEMPFILES FOR EXAMPLE)
+            time.sleep(10)
             check = self.check_file_in_dir(download_dir, extension)
             if check:
+                time.sleep(3)
                 self.browser.close()
                 return
-            time.sleep(3)
             self.close_when_download_finished(download_dir, extension)
 
     #TO DO: DOWNLOAD OUTROS ELEMENTOS
@@ -134,7 +137,5 @@ class ObservaDownload:
 
         self.inicialize()
         self.download_csv_pipeline()
-        #HARDCODING THIS TILL I HAVE A MORE RELIABLE SOLUTION (CHECK FOR TEMPFILES FOR EXAMPLE)
-        time.sleep(10)
         self.close_when_download_finished(self.csv_download_dir, '.csv')
 
