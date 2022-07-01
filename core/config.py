@@ -15,6 +15,7 @@ LIST_INDICADORES_DISTRITO = [
     'População total',
     'População total - homens',
     'População total - mulheres',
-    'Índice de envelhecimento',
     'Razão de sexos'
 ]
+
+LIST_INDICADORES_MUNICIPIO = ['Índice de envelhecimento',]
