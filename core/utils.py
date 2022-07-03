@@ -1,5 +1,6 @@
 import os
 import zipfile
+import pickle
 
 def solve_dir(folder):
 
@@ -78,6 +79,3 @@ def unzip_bytes_io(bytes_io, save_folder):
 
     with zipfile.ZipFile(bytes_io) as zip_ref:
         zip_ref.extractall(save_folder)
-
-
-    
