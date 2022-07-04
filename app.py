@@ -10,7 +10,13 @@ from core.config import LIST_INDICADORES_DISTRITO
 from core.load_app_data import df_distritos, df_munin, geoseries_dists, boundary_municipio
 from core.app_functions import make_map, make_table, make_mulher_x_homens_graph, make_indice_envelhecimento_graph
 
+from core.app_layout import navbar
+
+
+#objetos com estilo customizado tem que vir depois do import do tema
 external_stylesheets = [dbc.themes.LUX]
+
+
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = 'MvP ObservaSampa'
@@ -20,6 +26,7 @@ ANOS = list(range(2000, 2021))
 ANO_INICIAL = 2020
 
 app.layout = html.Div([
+    dbc.Row(navbar),
     dbc.Row(
         [
             dbc.Col(html.H6(f"População total: {100000}")),
@@ -39,7 +46,11 @@ app.layout = html.Div([
                         for ano in ANOS
                     ],
                 value = ANO_INICIAL
-            )
+            ),
+             dbc.Tooltip(
+            "Selecione o ano para ver a distribuição da população total por distrito da cidade",
+            target="dropdown-ano",
+        )
             ]),
         dbc.Row(
             dcc.Graph(

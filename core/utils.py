@@ -17,6 +17,13 @@ def solve_path(path, parent = None):
 
     return os.path.abspath(path)
 
+def solve_path_relative(path, parent):
+
+    if not os.path.exists(parent):
+        os.mkdir(parent)
+
+    return os.path.join(parent, path)
+
 def list_files(folder, extension=None):
 
     folder = solve_path(folder)
