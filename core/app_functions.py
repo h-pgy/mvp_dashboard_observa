@@ -1,3 +1,4 @@
+from locale import dcgettext
 from ntpath import join
 import random
 import pandas as pd
@@ -29,7 +30,7 @@ def join_distritos(df_distritos, shp_distritos):
 
         return geodf
 
-def make_map(df_distritos, shp_distritos, indicador, ano):
+def make_map(df_distritos, shp_distritos, indicador, ano, title):
 
     data = filtrar_indicador(df_distritos, indicador)
     data = filtrar_anos(data, ano)
@@ -40,7 +41,8 @@ def make_map(df_distritos, shp_distritos, indicador, ano):
         geojson=data.geometry,
         locations=data.index,
         color = 'value',
-        color_continuous_scale = 'Blues'
+        color_continuous_scale = 'Blues',
+        title = title
         )
     fig.update_geos(fitbounds="locations", visible=False)
 
@@ -48,12 +50,37 @@ def make_map(df_distritos, shp_distritos, indicador, ano):
 
     return fig
 
+def make_table(df_distritos, ano, indicador, cols):
 
-def inicializar_variaveis(df):
+    df = filtrar_indicador(df_distritos, indicador)
+    df = filtrar_anos(df, ano)
 
-    indicador_inicial = random.choice(LIST_INDICADORES_DISTRITO)
-    anos_iniciais = filtrar_indicador(df, indicador_inicial)['Período'].unique()
-    ano_inicial = random.choice(anos_iniciais)
+    df = df[cols]
+
+    df = df.to_dict('records')
+
+    return df
+
+def make_mulher_x_homens_graph(df_municipio):
+
+    mulheres = filtrar_indicador(df_municipio, 'População total - mulheres')
+    homens = filtrar_indicador(df_municipio, 'População total - homens')
+
+    data = pd.concat([mulheres, homens])
+
+    figure = px.bar(data, x="Período", y="value", 
+                 color="Nome", barmode="group",
+                 title = 'População por sexo por ano')
     
-    return indicador_inicial, anos_iniciais, ano_inicial
+    return figure
+
+
+def make_indice_envelhecimento_graph(df_municipio):
+
+    df = filtrar_indicador(df_municipio, 'Índice de envelhecimento')
+
+    figure = px.bar(df, x = 'Período', y='value', title='Índice de envelhecimento por ano')
+
+    return figure
+    
 
