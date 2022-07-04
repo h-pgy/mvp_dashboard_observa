@@ -1,3 +1,4 @@
+from flask import g
 import pandas as pd 
 import geopandas as gpd 
 import os
@@ -67,6 +68,38 @@ class TransformarIndicadores:
 
         return df
 
+    def stringbr_to_float(df, val):
+
+        if pd.isnull(val):
+            return 0
+        
+        if val == '':
+            return 0
+        
+        if val == ' ':
+            return 0
+
+        val = str(val)
+
+        val = val.replace(',', '.')
+
+        try:
+            if '.' in val:
+                val = float(val)
+            else:
+                val = int(val)
+        except ValueError:
+            print(f'Erro no valor: {val}')
+            return 0
+        return val
+
+    def resultados_float(self, df):
+
+        df = df.copy()
+        df['value'] = df['Resultado'].apply(self.stringbr_to_float)
+        
+        return df
+
     def pipeline_transform(self, list_indicadores, filtrar_distrito, df=None):
 
         if df is None:
@@ -79,6 +112,8 @@ class TransformarIndicadores:
 
         else:
             df = self.filtrar_municipio(df)
+        
+        df = self.resultados_float(df)
 
         return df
 
@@ -91,14 +126,15 @@ class MakeShapefileDistritos:
 
     path_distritos = solve_path('SIRGAS_SHP_distrito_polygon.shp', parent=FOLDER_DISTRITOS)
     distritos_epsg = '31983'
+    maps_epsg = '4326'
 
     def __init__(self):
 
         self.distritos = self.get_distritos()
 
-    def set_crs(self, distritos):
+    def set_crs(self, distritos, epsg):
 
-        distritos = distritos.set_crs(epsg = self.distritos_epsg)
+        distritos = distritos.set_crs(epsg = epsg)
 
         return distritos
 
@@ -107,13 +143,15 @@ class MakeShapefileDistritos:
         if not os.path.exists(path):
             download_shape_distritos()
 
-    def get_distritos(self, path=None):
+    def get_distritos(self, path=None, maps_epsg=True):
 
         if path is None:
             path = self.path_distritos
         
         distritos = gpd.read_file(path)
-        distritos = self.set_crs(distritos)
+        distritos = self.set_crs(distritos, self.distritos_epsg)
+        if maps_epsg:
+            distritos = distritos.to_crs(epsg = self.maps_epsg)
 
         return distritos
     
@@ -125,16 +163,4 @@ class MakeShapefileDistritos:
         municipio_todo = distritos.dissolve()
 
         return municipio_todo
-
-    def join_distritos(self, df, distritos=None):
-
-       
-        if distritos is None:
-            distritos = self.distritos
-
-        merged = pd.merge(df, distritos, how='left', on='ds_nome')
-        geodf = gpd.GeoDataFrame(merged, geometry='geometry')
-        geodf = self.set_crs(geodf)
-
-        return geodf
     

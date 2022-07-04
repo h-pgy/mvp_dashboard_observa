@@ -1,31 +1,26 @@
-import pickle
 from core.utils import solve_path
 from core.transform_data import TransformarIndicadores, MakeShapefileDistritos
 from core.config import APP_DATA_FOLDER, LIST_INDICADORES_DISTRITO, LIST_INDICADORES_MUNICIPIO
 
-#vou serializar porque o load time é mais rapido
-def pickle_data(obj, name, folder = APP_DATA_FOLDER):
-
-    fname = name + '.pi'
-    fpath = solve_path(fname, parent = folder)
-    
-    with open(fpath, 'wb') as f:
-        pickle.dump(obj, f)
 
 def build_data():
 
     t = TransformarIndicadores()
     df_dists = t(LIST_INDICADORES_DISTRITO, filtrar_distrito = True)
+    
     df_munin = t(LIST_INDICADORES_MUNICIPIO, filtrar_distrito = False)
     
     m = MakeShapefileDistritos()
-    geodf_dists = m.join_distritos(df_dists)
+    distritos = m.get_distritos()
     boundary_municipio = m.get_city_boundaries()
 
+    distritos.to_file(solve_path('distritos.shp', parent=APP_DATA_FOLDER))
+    boundary_municipio.to_file(solve_path('limite_municipio.shp', parent=APP_DATA_FOLDER))
 
-    pickle_data(geodf_dists, 'geodf_distritos')
-    pickle_data(df_munin, 'df_municipio')
-    pickle_data(boundary_municipio, 'boundary_municipio')
+    df_dists.to_csv(solve_path('df_distritos.csv', parent=APP_DATA_FOLDER))
+    df_munin.to_csv(solve_path('df_municipio.csv', parent=APP_DATA_FOLDER))
+
+    
 
 
 if __name__ == "__main__":
