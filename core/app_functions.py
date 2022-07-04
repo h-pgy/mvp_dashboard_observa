@@ -34,9 +34,7 @@ def make_map(df_distritos, shp_distritos, indicador, ano):
     data = filtrar_indicador(df_distritos, indicador)
     data = filtrar_anos(data, ano)
     print(f'Building map for {indicador} : {ano} ')
-    print(len(data))
     data = join_distritos(data, shp_distritos)
-    print(data)
     fig = px.choropleth(
         data,
         geojson=data.geometry,
