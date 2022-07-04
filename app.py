@@ -20,11 +20,17 @@ ANOS = list(range(2000, 2021))
 ANO_INICIAL = 2020
 
 app.layout = html.Div([
-    html.Div(children= [
-         dcc.Graph(
-            id="choropleth", 
-            style = {'display' : 'inline-block','float' : 'left'},
-         ),
+    dbc.Row(
+        [
+            dbc.Col(html.H6(f"População total: {100000}")),
+            dbc.Col(html.H6(f"Razão de sexos: {100000}")),
+            dbc.Col(html.H6(f"Área do Município: {100000}"))
+        ]
+    ),
+    dbc.Row(children= [
+        dbc.Col(
+            [
+         dbc.Row([
             html.H6('Selecione o ano'),
             dcc.Dropdown(
                 id = 'dropdown-ano',
@@ -33,21 +39,34 @@ app.layout = html.Div([
                         for ano in ANOS
                     ],
                 value = ANO_INICIAL
-
-            ),
+            )
+            ]),
+        dbc.Row(
+            dcc.Graph(
+            id="choropleth", 
+            style = {'display' : 'inline-block','float' : 'left'},
+         )),
+        
+         ]),
+         dbc.Col(
          dash_table.DataTable(id='data-table', 
             editable=False, 
             column_selectable=False,
             page_action="native",
             page_current= 0,
             page_size= 10,)
+        )
         ]),
-    html.Div(children=[
+    dbc.Row(children=[
+        dbc.Col(
         dcc.Graph(id="graph-mulher-x-homem",
         figure = make_mulher_x_homens_graph(df_munin)
+        )
         ),
+        dbc.Col(
         dcc.Graph(id='graph-envelhecimento-ano',
         figure = make_indice_envelhecimento_graph(df_munin)
+        )
         )
     ]
     )
