@@ -4,12 +4,10 @@ from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
 import plotly.express as px
-import random
 
 from core.config import LIST_INDICADORES_DISTRITO
-import pandas as pd
-from core.load_app_data import geodf_dists, df_munin, boundary_municipio
-
+from core.load_app_data import df_distritos, df_munin, geoseries_dists, boundary_municipio
+from core.app_functions import inicializar_variaveis, filtrar_indicador, make_map
 
 external_stylesheets = [dbc.themes.LUX]
 
@@ -17,42 +15,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = 'MvP ObservaSampa'
 server = app.server
 
-
-def filtrar_indicador(df, indicador):
-
-    mask = df['Nome']== indicador
-
-    return df[mask].copy()
-
-def filtrar_anos(df, ano):
-
-    mask = df['Período']== ano
-
-    return df[mask].copy()
-
-def make_map(indicador, ano):
-
-    data = filtrar_indicador(geodf_dists, indicador)
-    data = filtrar_anos(data, ano)
-    print(f'Building map for {indicador} : {ano} ')
-    fig = px.choropleth(
-        data,
-        geojson=data.geometry,
-        locations=data.index,
-        color = 'value',
-        color_continuous_scale = 'Blues'
-        )
-    fig.update_geos(fitbounds="locations", visible=False)
-
-    print('map finished')
-
-    return fig
-
-
-indicador_inicial = random.choice(LIST_INDICADORES_DISTRITO)
-anos_inicias = filtrar_indicador(geodf_dists, indicador_inicial)['Período'].unique()
-ano_inicial = random.choice(anos_inicias)
-#map_inicial = make_map(indicador_inicial, ano_inicial)
+indicador_inicial, anos_iniciais, ano_inicial = inicializar_variaveis(df_distritos)
 
 app.layout = html.Div([
     html.Div(
@@ -71,7 +34,7 @@ app.layout = html.Div([
                 id = 'dropdown-ano',
                 options=[
                         {'label': ano, 'value': ano}
-                        for ano in anos_inicias
+                        for ano in anos_iniciais
                     ],
                 value = ano_inicial
 
@@ -94,7 +57,7 @@ app.layout = html.Div([
     [dash.dependencies.Input('dropdown-indicador', 'value')])
 def update_anos(ano):
     
-    anos = filtrar_indicador(geodf_dists, ano)['Período']
+    anos = filtrar_indicador(df_distritos, ano)['Período']
     return [{'label': ano, 'value': ano}
             for ano in anos
         ]
@@ -104,7 +67,7 @@ def update_anos(ano):
     [Input("dropdown-indicador", "value"), Input('dropdown-ano', 'value')])
 def display_choropleth(indicador, ano):
 
-    return make_map(indicador, ano)
+    return make_map(df_distritos, geoseries_dists, indicador, ano)
 
 
 app.run_server(debug=True)
