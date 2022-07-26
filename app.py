@@ -7,10 +7,11 @@ from dash import dash_table
 import plotly.express as px
 
 from core.config import LIST_INDICADORES_DISTRITO
-from core.load_app_data import df_distritos, df_munin, geoseries_dists, boundary_municipio
+from core.load_app_data import df_distritos, df_munin, geoseries_dists
 from core.app_functions import make_map, make_table, make_mulher_x_homens_graph, make_indice_envelhecimento_graph
 
-from core.app_layout import navbar
+from core.app_layout import (navbar, footer, base_style, 
+                    TAMANHO_COL, OFFSET_COL_LEFT, OFFSET_COL_RIGHT)
 
 
 #objetos com estilo customizado tem que vir depois do import do tema
@@ -25,8 +26,9 @@ server = app.server
 ANOS = list(range(2000, 2021))
 ANO_INICIAL = 2020
 
-app.layout = html.Div([
-    dbc.Row(navbar),
+app.layout = html.Div(
+    children=[
+    dbc.Row(dbc.Col(navbar, width = {"size" : 12})),
     dbc.Row(
         [
             dbc.Col(html.H6(f"População total: {100000}")),
@@ -57,31 +59,36 @@ app.layout = html.Div([
             id="choropleth", 
             style = {'display' : 'inline-block','float' : 'left'},
          )),
-        
-         ]),
+         ],
+         width = {'size' : TAMANHO_COL, 'offset' : OFFSET_COL_LEFT}),
          dbc.Col(
          dash_table.DataTable(id='data-table', 
             editable=False, 
             column_selectable=False,
             page_action="native",
             page_current= 0,
-            page_size= 10,)
+            page_size= 10,),
+            width = {'size' : TAMANHO_COL, 'offset' : OFFSET_COL_RIGHT}
         )
         ]),
     dbc.Row(children=[
         dbc.Col(
         dcc.Graph(id="graph-mulher-x-homem",
         figure = make_mulher_x_homens_graph(df_munin)
-        )
+        ),
+        width = {'size' : TAMANHO_COL, 'offset' : OFFSET_COL_LEFT}
         ),
         dbc.Col(
         dcc.Graph(id='graph-envelhecimento-ano',
         figure = make_indice_envelhecimento_graph(df_munin)
-        )
+        ),
+        width = {'size' : TAMANHO_COL, 'offset' : OFFSET_COL_RIGHT}
         )
     ]
+    ),
+    footer
+    ],
     )
-    ])
 
 @app.callback(
     Output("choropleth", "figure"), 
